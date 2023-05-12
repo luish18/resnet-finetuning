@@ -1,18 +1,17 @@
 from datetime import datetime
 
-import torch.utils.tensorboard as tboard
 import torch
 import torch.nn as nn
+import torch.utils.tensorboard as tboard
+import torchdata.dataloader2 as dl2
 import torchmetrics as tmetrics
 import torchmetrics.classification as cmetrics
 from torchvision.models.resnet import ResNet18_Weights, resnet18
-import torchdata.dataloader2 as dl2
 
-
+from .utils.constants import *
 from .utils.datapipes import file_pipe, image_encoder_to_tensor, path_to_label
 from .utils.trainingLoops import train
-from.utils.utils import get_class_freq
-from .utils.constants import *
+from .utils.utils import get_class_freq
 
 
 def create_model(device, n_classes):
@@ -33,7 +32,6 @@ def create_model(device, n_classes):
 
 
 def main():
-    
     ## criando pipelines de treinamento
     # instanciando os pesos do modelo e a funcao de pre-processamento
     weights = ResNet18_Weights.DEFAULT
@@ -57,12 +55,10 @@ def main():
     reading_service = dl2.MultiProcessingReadingService(num_workers=NUM_WORKERS)
     train_loader = dl2.DataLoader2(datapipe=train_pipe, reading_service=reading_service)
     val_loader = dl2.DataLoader2(datapipe=val_pipe, reading_service=reading_service)
-    
-    
-    
+
     ## criando modelo
     freq = get_class_freq(DATA_PATH)
-    
+
     model = create_model(DEVICE, N_CLASSES)
 
     params = model.parameters()
@@ -70,7 +66,7 @@ def main():
     lr_scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer=optimizer, step_size=LR_STEP, gamma=GAMMA
     )
-    
+
     ## loss function
     class_weights = torch.tensor(
         list(freq.negative_logprob / freq.negative_logprob.max())
@@ -102,12 +98,12 @@ def main():
         .eval()
         .to(DEVICE)
     )
-    
+
     # tensorboard writer
     exp_name = datetime.now().strftime("%m:%d-%H:%M")
     # writes para vermos estatisticas no tensorboard
     writer = tboard.SummaryWriter(log_dir=(LOG_PATH / exp_name))
-    
+
     ## traning loop
     train(
         model=model,
@@ -122,7 +118,7 @@ def main():
         val_metrics=val_metrics,
         writer=writer,
     )
-    
+
     ## salvando modelo
     # jit nao tem suporte para device "mps" do mac, retornamos o modelo para o cpu
     model.to(torch.device("cpu"))
