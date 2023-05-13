@@ -1,4 +1,9 @@
+#!
+
+import warnings
 from datetime import datetime
+
+warnings.filterwarnings("ignore")
 
 import torch
 import torch.nn as nn
@@ -8,10 +13,10 @@ import torchmetrics as tmetrics
 import torchmetrics.classification as cmetrics
 from torchvision.models.resnet import ResNet18_Weights, resnet18
 
-from .utils.constants import *
+from utils.constants import *
+
 from .utils.datapipes import file_pipe, image_encoder_to_tensor, path_to_label
 from .utils.trainingLoops import train
-from .utils.utils import get_class_freq
 
 
 def create_model(device, n_classes):
