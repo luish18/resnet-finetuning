@@ -43,10 +43,10 @@ MODELS_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/models")
 LOG_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/logs/runs")
 
 INPUT_SHAPE = (3, 224, 244)
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 SEED = 12345
-SPLIT = 0.8
-N_EPOCHS = 10
+SPLIT = 0.7
+N_EPOCHS = 20
 MAX_CACHE_SIZE = 1024
 
 
