@@ -1,10 +1,12 @@
-from pathlib import Path
-import torchdata.datapipes.iter as idp
-from PIL import Image
 from io import BytesIO
+from pathlib import Path
+
+import torchdata.datapipes.iter as idp
 import torchvision.transforms as TF
+from PIL import Image
 
 from .constants import label_mapping
+
 
 def path_to_label(item):
     return label_mapping[Path(item).parent.name]
@@ -21,6 +23,7 @@ def filter_imgs(file: tuple[str, Image.Image]):
 
 def image_encoder_to_tensor(example):
     return TF.PILToTensor()(Image.open(BytesIO(example)))
+
 
 def file_pipe(
     file: Path | str,
@@ -41,12 +44,12 @@ def file_pipe(
         files.open_files(mode="rb")
         .read_from_stream()
         .map(transform)
-        .prefetch(N_images)
-        .in_memory_cache()
         .shuffle()
-        .batch(batch_size=batch_size, drop_last=True)
-        .collate()
         .sharding_filter()
+        .batch(batch_size=batch_size, drop_last=True)
+        .prefetch(N_images)
+        .collate()
+        .in_memory_cache(cache_size)
     )
 
     split_dict = {"train": split, "valid": 1 - split}
@@ -55,6 +58,7 @@ def file_pipe(
     )
 
     return train, valid
+
 
 def url_pipe(
     url: str,

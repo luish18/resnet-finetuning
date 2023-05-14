@@ -15,8 +15,7 @@ def get_class_freq(path: Path) -> pd.DataFrame:
     Returns:
         dict[str, int]: dicionário com cada uma das classes e sua frequência no dataset
     """
-    print(path.resolve())
-    class_paths = path.glob("*")
+    class_paths = path.glob("*/**")
     class_freq: dict[str, int] = {}
 
     for folder in class_paths:
@@ -44,22 +43,23 @@ MODELS_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/models/mode
 LOG_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/logs/runs")
 
 INPUT_SHAPE = (3, 224, 244)
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 SEED = 42
 SPLIT = 0.8
-N_EPOCHS = 100
+N_EPOCHS = 1000
+MAX_CACHE_SIZE = 1024
 
 
-LR = 1e-2
-LR_STEP = 5
+LR = 1e-4
+LR_STEP = 20
 GAMMA = 0.1
-F_BETA = 0.5
+F_BETA = 1.0
 
 classes = get_class_freq(DATA_PATH)
 
 N_IMAGENS = classes.frequencia.sum()
 N_CLASSES = len(classes["classe"])
-NUM_WORKERS = 10
+NUM_WORKERS = 4
 
 
 DEVICE = torch.device("mps")

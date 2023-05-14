@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.utils.tensorboard as tboard
 import torchdata.dataloader2 as dl2
 import torchmetrics as tmetrics
-from tqdm import trange
+from tqdm import tqdm, trange
 
 
 def train_epoch(
@@ -22,8 +22,17 @@ def train_epoch(
     model.train()
 
     running_loss = 0.0
+    loss = 0.0
+    iterator = tqdm(
+        enumerate(data_loader),
+        desc="train_loop",
+        unit="batches",
+        position=1,
+        leave=False,
+        postfix={"loss": loss},
+    )
 
-    for i, (labels, imgs) in enumerate(data_loader):
+    for i, (labels, imgs) in iterator:
         labels = labels.to(device)
 
         imgs = imgs.to(device)
@@ -49,10 +58,11 @@ def train_epoch(
         tboard_writer.add_scalars(
             main_tag="metrics/train/batch",
             tag_scalar_dict=metrics(
-                torch.max(torch.softmax(outputs, dim=1), dim=1)[1], labels
+                torch.max(-torch.log_softmax(outputs, dim=1), dim=1)[1], labels
             ),
             global_step=n_iter,
         )
+        iterator.set_postfix(postfix={"loss": loss})
 
     tboard_writer.add_scalar("loss/train/epoch", running_loss, n_iter)
     tboard_writer.add_scalars(
@@ -78,10 +88,18 @@ def eval(
     # modelo em modo de validacao
     model.eval()
 
+    iterator = tqdm(
+        enumerate(data_loader),
+        desc="val_loop",
+        unit="batches",
+        position=1,
+        leave=False,
+    )
+
     # equivalente a nograd
     running_loss = 0.0
     with torch.inference_mode():
-        for i, (labels, imgs) in enumerate(data_loader):
+        for i, (labels, imgs) in iterator:
             labels = labels.to(device)
             imgs = imgs.to(device)
 
@@ -90,6 +108,7 @@ def eval(
 
             # erro
             loss = criterion(outputs, labels)
+
             running_loss += float(loss)
 
             n_iter += i
@@ -97,7 +116,7 @@ def eval(
             tboard_writer.add_scalars(
                 main_tag="metrics/eval/batch",
                 tag_scalar_dict=metrics(
-                    torch.max(torch.softmax(outputs, dim=1), dim=1)[1], labels
+                    torch.max(-torch.log_softmax(outputs, dim=1), dim=1)[1], labels
                 ),
                 global_step=n_iter,
             )
@@ -141,7 +160,10 @@ def train(
         position=0,
     )
     train_i = val_i = 0
-    for _ in pbar:
+    for epoch in pbar:
+        
+        torch.manual_seed(epoch)
+        
         start_time = time()
         train_loss, train_i = train_epoch(
             model=model,
