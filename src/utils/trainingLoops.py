@@ -29,7 +29,6 @@ def train_epoch(
         unit="batches",
         position=1,
         leave=False,
-        postfix={"loss": loss},
     )
 
     for i, (labels, imgs) in iterator:
@@ -58,11 +57,10 @@ def train_epoch(
         tboard_writer.add_scalars(
             main_tag="metrics/train/batch",
             tag_scalar_dict=metrics(
-                torch.max(-torch.log_softmax(outputs, dim=1), dim=1)[1], labels
+                torch.max(torch.log_softmax(outputs, dim=1), dim=1)[1], labels
             ),
             global_step=n_iter,
         )
-        iterator.set_postfix(postfix={"loss": loss})
 
     tboard_writer.add_scalar("loss/train/epoch", running_loss, n_iter)
     tboard_writer.add_scalars(
@@ -116,7 +114,7 @@ def eval(
             tboard_writer.add_scalars(
                 main_tag="metrics/eval/batch",
                 tag_scalar_dict=metrics(
-                    torch.max(-torch.log_softmax(outputs, dim=1), dim=1)[1], labels
+                    torch.max(torch.log_softmax(outputs, dim=1), dim=1)[1], labels
                 ),
                 global_step=n_iter,
             )

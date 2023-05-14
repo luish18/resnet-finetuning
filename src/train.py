@@ -41,18 +41,7 @@ def combined(example):
     )
 
 
-def worker_init_fn(datapipe, worker_info):
-    warnings.filterwarnings(action="ignore")
-    torch.set_warn_always(False)
-    os.environ["MKL_VERBOSE"] = "0"
-    return datapipe
-
-
 def main():
-    torch.set_warn_always(False)
-
-    os.environ["MKL_VERBOSE"] = "0"
-
     ## criando pipelines de treinamento
     # instanciando os pesos do modelo e a funcao de pre-processamento
 
@@ -67,9 +56,7 @@ def main():
         cache_size=MAX_CACHE_SIZE,
     )
 
-    reading_service = dl2.MultiProcessingReadingService(
-        num_workers=NUM_WORKERS, worker_init_fn=worker_init_fn
-    )
+    reading_service = dl2.MultiProcessingReadingService(num_workers=NUM_WORKERS)
     train_loader = dl2.DataLoader2(datapipe=train_pipe, reading_service=reading_service)
     val_loader = dl2.DataLoader2(datapipe=val_pipe, reading_service=reading_service)
 
@@ -139,11 +126,11 @@ def main():
         val_loader.shutdown()
         writer.close()
 
-    ## salvando modelo
-    # jit nao tem suporte para device "mps" do mac, retornamos o modelo para o cpu
-    model.to(torch.device("cpu"))
-    trained_model = torch.jit.script(model.state_dict())
-    trained_model.save(MODELS_PATH)
+        ## salvando modelo
+        # jit nao tem suporte para device "mps" do mac, retornamos o modelo para o cpu
+        model.to(torch.device("cpu"))
+        trained_model = torch.jit.script(model.state_dict())
+        trained_model.save(MODELS_PATH / exp_name)
 
 
 if __name__ == "__main__":
