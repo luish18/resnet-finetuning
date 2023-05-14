@@ -104,8 +104,8 @@ def url_pipe(
         .collate()
     )
 
-    split_dict = {"train": split, "valid": 1 - split}
-    train, valid = data_pipe.random_split(
+    split_dict = {"train": split, "valid": (1 - split)/2, "test" : (1 - split)/2}
+    train, valid, test = data_pipe.random_split(
         weights=split_dict, total_length=N_images, seed=seed
     )
 

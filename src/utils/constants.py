@@ -39,19 +39,19 @@ def get_class_freq(path: Path) -> pd.DataFrame:
 
 URL = os.getenv("URL")
 DATA_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/data")
-MODELS_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/models/model.pt")
+MODELS_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/models")
 LOG_PATH = Path("/Users/luishf/Documents/GitHub/resnet-finetuning/logs/runs")
 
 INPUT_SHAPE = (3, 224, 244)
-BATCH_SIZE = 64
-SEED = 42
+BATCH_SIZE = 128
+SEED = 12345
 SPLIT = 0.8
-N_EPOCHS = 100
-MAX_CACHE_SIZE = 256
+N_EPOCHS = 10
+MAX_CACHE_SIZE = 1024
 
 
 LR = 1e-3
-LR_STEP = 10
+LR_STEP = 2
 GAMMA = 0.1
 F_BETA = 1.0
 
@@ -59,7 +59,7 @@ classes = get_class_freq(DATA_PATH)
 
 N_IMAGENS = classes.frequencia.sum()
 N_CLASSES = len(classes["classe"])
-NUM_WORKERS = 4
+NUM_WORKERS = 2
 
 
 DEVICE = torch.device("mps")

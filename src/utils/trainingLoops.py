@@ -17,6 +17,7 @@ def train_epoch(
     metrics: tmetrics.MetricCollection,
     tboard_writer: tboard.SummaryWriter,
     n_iter: int,
+    epoch: int
 ) -> float:
     # modelo em modo de treinamento
     model.train()
@@ -62,11 +63,11 @@ def train_epoch(
             global_step=n_iter,
         )
 
-    tboard_writer.add_scalar("loss/train/epoch", running_loss, n_iter)
+    tboard_writer.add_scalar("loss/train/epoch", running_loss, epoch)
     tboard_writer.add_scalars(
         main_tag="metrics/train/epoch",
         tag_scalar_dict=metrics.compute(),
-        global_step=n_iter,
+        global_step=epoch,
     )
 
     metrics.reset()
@@ -82,6 +83,7 @@ def eval(
     metrics: tmetrics.MetricCollection,
     tboard_writer: tboard.SummaryWriter,
     n_iter: int,
+    epoch: int
 ) -> float:
     # modelo em modo de validacao
     model.eval()
@@ -119,11 +121,11 @@ def eval(
                 global_step=n_iter,
             )
 
-    tboard_writer.add_scalar("loss/eval/epoch", running_loss, n_iter)
+    tboard_writer.add_scalar("loss/eval/epoch", running_loss, epoch)
     tboard_writer.add_scalars(
         main_tag="metrics/eval/epoch",
         tag_scalar_dict=metrics.compute(),
-        global_step=n_iter,
+        global_step=epoch,
     )
     metrics.reset()
 
@@ -172,6 +174,7 @@ def train(
             metrics=train_metrics,
             tboard_writer=writer,
             n_iter=train_i,
+            epoch=epoch
         )
         ttime = time() - start_time
 
@@ -186,6 +189,7 @@ def train(
             metrics=val_metrics,
             tboard_writer=writer,
             n_iter=val_i,
+            epoch=epoch
         )
 
         pbar.set_postfix(

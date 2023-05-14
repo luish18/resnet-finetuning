@@ -13,6 +13,7 @@ import torchmetrics as tmetrics
 import torchmetrics.classification as cmetrics
 from torchvision.models.resnet import ResNet18_Weights, resnet18
 
+from inference import test_model
 from utils.constants import *
 from utils.datapipes import file_pipe, image_encoder_to_tensor, path_to_label
 from utils.trainingLoops import train
@@ -46,7 +47,7 @@ def main():
     # instanciando os pesos do modelo e a funcao de pre-processamento
 
     # criando pipelines de treinamento e validacao
-    train_pipe, val_pipe = file_pipe(
+    train_pipe, val_pipe, test_pipe = file_pipe(
         file=str(DATA_PATH),
         N_images=N_IMAGENS,
         seed=SEED,
@@ -129,8 +130,19 @@ def main():
         ## salvando modelo
         # jit nao tem suporte para device "mps" do mac, retornamos o modelo para o cpu
         model.to(torch.device("cpu"))
-        trained_model = torch.jit.script(model.state_dict())
-        trained_model.save(MODELS_PATH / exp_name)
+        torch.save(model.state_dict(), (MODELS_PATH / exp_name / ".pt"))
+
+    model = torch.load(MODELS_PATH / exp_name / ".pt")
+    test_loader = dl2.DataLoader2(datapipe=test_pipe, reading_service=reading_service)
+    val_metrics.reset()
+
+    test_model(
+        model=model,
+        test_loader=test_loader,
+        device=DEVICE,
+        metrics=val_metrics,
+        batch_size=1,
+    )
 
 
 if __name__ == "__main__":
